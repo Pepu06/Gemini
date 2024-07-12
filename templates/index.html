@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autocompletado de Textos</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">Autocompletado de Textos</h1>
+        <form id="textoForm" method="post">
+            <label for="texto">Ingresa el texto que quieres completar:</label>
+            <textarea id="texto" name="texto" rows="4" cols="50"></textarea>
+            <button type="submit">Generar opciones</button>
+        </form>
+        
+        <div class="result" id="result">
+            <!-- Aquí se mostrarán las opciones generadas -->
+        </div>
+
+        <div class="selected" id="selected">
+            <!-- Aquí se mostrarán las opciones seleccionadas una al lado de la otra -->
+            <h2>Textos Seleccionados:</h2>
+            <div id="selectedTextsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#texto').on('keyup', function(e) {
+                if (e.keyCode === 32) { // Detecta la barra espaciadora
+                    var texto = $(this).val();
+                    $.ajax({
+                        type: 'POST',
+                        url: '/autocomplete',
+                        data: { texto: texto },
+                        success: function(respuestas) {
+                            var resultDiv = $('#result');
+                            resultDiv.empty();
+                            respuestas.forEach(function(respuesta, index) {
+                                resultDiv.append(`
+                                    <div>
+                                        <input type="radio" id="respuesta${index}" name="respuesta_seleccionada" value="${respuesta}">
+                                        <label for="respuesta${index}">${respuesta}</label>
+                                    </div>
+                                `);
+                            });
+                        }
+                    });
+                }
+            });
+
+            $('#result').on('change', 'input[name="respuesta_seleccionada"]', function() {
+                var seleccion = $(this).val();
+                var selectedTextsContainer = $('#selectedTextsContainer');
+                selectedTextsContainer.append(`<span>${seleccion} </span>`);
+                $('#texto').val(''); // Limpiar el textarea después de la selección
+                $('#result').empty(); // Limpiar las opciones generadas después de la selección
+                $('#texto').focus(); // Enfocar el textarea automáticamente
+            });
+        });
+    </script>
+</body>
+</html>
